@@ -8,8 +8,8 @@ import { Model } from 'mongoose';
 export class UsersService {
   constructor(@InjectModel('User') private userModel: Model<any>) {}
 
-  async createUser(username, email) {
-    const newUser = new this.userModel({ username, email });
+  async createUser(username, email, password) {
+    const newUser = new this.userModel({ username, email, password });
     return await newUser.save();
   }
 
@@ -19,5 +19,8 @@ export class UsersService {
 
   async getUserById(id) {
     return await this.userModel.findById(id).exec();
+  }
+  async findByUsername(username: string) {
+    return await this.userModel.findOne({ username }).exec();
   }
 }
