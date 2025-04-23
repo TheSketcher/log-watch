@@ -4,7 +4,7 @@ import Input from "@/components/ui/Input";
 const SearchBar = ({ value, onChange }) => (
   <div className="mb-6">
     <Input
-      placeholder="Suche Applikationen …"
+      placeholder="Search applications..."
       value={value}
       onChange={(e) => onChange(e.target.value)}
     />

@@ -4,6 +4,8 @@ import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import { useNavigate } from "react-router-dom";
 import { login as saveToken } from "@/utils/auth";
+import api from "@/api/axios";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function LoginPage({ onLogin }) {
   const [tab, setTab] = useState("login");
@@ -13,6 +15,7 @@ export default function LoginPage({ onLogin }) {
   const [error, setError] = useState("");
   const navigate = useNavigate();
   const apiUrl = import.meta.env.VITE_API_URL;
+  const { login: ctxLogin } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -20,12 +23,11 @@ export default function LoginPage({ onLogin }) {
 
     try {
       if (tab === "login") {
-        const { data } = await axios.post(`${apiUrl}/auth/login`, {
+        const { data } = await api.post(`/auth/login`, {
           username,
           password,
         });
-        saveToken(data.token || "demo-token");
-        if (onLogin) onLogin(data);
+        ctxLogin(data.token, { username: data.username });
         navigate("/dashboard", { replace: true });
       } else {
         const { data } = await axios.post(`${apiUrl}/users`, {

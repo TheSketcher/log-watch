@@ -32,7 +32,7 @@ const DashboardPage = () => {
     <AppLayout>
       <SearchBar value={query} onChange={setQuery} />
       {filteredApps.length === 0 ? (
-        <p className="text-gray-500">Keine Applikationen gefunden.</p>
+        <p className="text-gray-500">No Applications found.</p>
       ) : (
         <div className="grid gap-6 grid-cols-[repeat(auto-fill,minmax(260px,1fr))]">
           {filteredApps.map((app) => (
