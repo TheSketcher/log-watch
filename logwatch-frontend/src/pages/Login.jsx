@@ -1,13 +1,17 @@
 import { useState } from "react";
 import axios from "axios";
+import Button from "@/components/ui/Button";
+import Input from "@/components/ui/Input";
+import { useNavigate } from "react-router-dom";
+import { login as saveToken } from "@/utils/auth";
 
-export default function Login({ onLogin }) {
-  const [tab, setTab] = useState("login"); // 'login' oder 'register'
+export default function LoginPage({ onLogin }) {
+  const [tab, setTab] = useState("login");
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-
+  const navigate = useNavigate();
   const apiUrl = import.meta.env.VITE_API_URL;
 
   const handleSubmit = async (e) => {
@@ -16,22 +20,22 @@ export default function Login({ onLogin }) {
 
     try {
       if (tab === "login") {
-        const response = await axios.post(`${apiUrl}/auth/login`, {
+        const { data } = await axios.post(`${apiUrl}/auth/login`, {
           username,
           password,
         });
-
-        console.log("Login successful:", response.data);
-        if (onLogin) onLogin(response.data);
+        saveToken(data.token || "demo-token");
+        if (onLogin) onLogin(data);
+        navigate("/dashboard", { replace: true });
       } else {
-        const response = await axios.post(`${apiUrl}/users`, {
+        const { data } = await axios.post(`${apiUrl}/users`, {
           username,
           email,
           password,
         });
-
-        console.log("User registered:", response.data);
-        if (onLogin) onLogin(response.data);
+        saveToken(data.token || "demo-token");
+        if (onLogin) onLogin(data);
+        navigate("/dashboard", { replace: true });
       }
     } catch (err) {
       console.error(`${tab} failed:`, err.message);
@@ -70,42 +74,36 @@ export default function Login({ onLogin }) {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-gray-700">Username</label>
-            <input
+            <Input
               type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
               required
             />
           </div>
           {tab === "register" && (
             <div>
               <label className="block text-gray-700">Email</label>
-              <input
+              <Input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
                 required
               />
             </div>
           )}
           <div>
             <label className="block text-gray-700">Password</label>
-            <input
+            <Input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
               required
             />
           </div>
-          <button
-            type="submit"
-            className="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition duration-200"
-          >
+          <Button type="submit" className="w-full">
             {tab === "login" ? "Login" : "Register"}
-          </button>
+          </Button>
         </form>
       </div>
     </div>

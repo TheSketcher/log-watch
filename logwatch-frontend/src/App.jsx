@@ -1,30 +1,47 @@
-import { useState } from "react";
-import Login from "./Login";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import Login from "@/pages/Login";
+import DashboardPage from "@/pages/Dashboard";
+import { isAuthenticated } from "@/utils/auth";
 
-import "./index.css";
+function ProtectedRoute({ children }) {
+  return isAuthenticated() ? children : <Navigate to="/login" replace />;
+}
 
-function App() {
+export default function App() {
   const [user, setUser] = useState(null);
 
+  // keep user in state when reloading (optional)
+  useEffect(() => {
+    if (isAuthenticated() && !user) setUser({});
+  }, []);
+
   const handleLogin = (credentials) => {
-    // Hier später API Call, jetzt einfach speichern:
-    console.log("Login submitted:", credentials);
     setUser(credentials);
   };
 
   return (
-    <div>
-      {!user ? (
-        <Login onLogin={handleLogin} />
-      ) : (
-        <div className="p-8">
-          <h1 className="text-2xl font-bold text-gray-800">
-            Welcome, {user.username}!
-          </h1>
-        </div>
-      )}
-    </div>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/login" element={<Login onLogin={handleLogin} />} />
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <DashboardPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="*"
+          element={
+            <Navigate
+              to={isAuthenticated() ? "/dashboard" : "/login"}
+              replace
+            />
+          }
+        />
+      </Routes>
+    </BrowserRouter>
   );
 }
-
-export default App;
