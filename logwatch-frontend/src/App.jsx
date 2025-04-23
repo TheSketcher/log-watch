@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Login from "@/pages/Login";
 import DashboardPage from "@/pages/Dashboard";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import CreateApplication from "@/pages/CreateApplication";
 
 // ----- Guard -----
 const ProtectedRoute = ({ children }) => {
@@ -22,6 +23,14 @@ export default function App() {
             element={
               <ProtectedRoute>
                 <DashboardPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/applications/new"
+            element={
+              <ProtectedRoute>
+                <CreateApplication />
               </ProtectedRoute>
             }
           />

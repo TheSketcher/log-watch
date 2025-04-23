@@ -1,28 +1,29 @@
 // src/contexts/AuthContext.jsx
 import { createContext, useState, useEffect, useContext } from "react";
 import {
-  isAuthenticated,
+  getStoredUser,
   login as saveToken,
-  logout as removeToken,
+  logout as clearToken,
+  isAuthenticated,
 } from "@/utils/auth";
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(getStoredUser());
 
-  // beim Start prüfen
+  // keep context in sync with storage when the tab reloads
   useEffect(() => {
-    if (isAuthenticated()) setUser({}); // evtl. Profil vom Server holen
+    if (isAuthenticated() && !user) setUser(getStoredUser() || {});
   }, []);
 
   const login = (token, userInfo = {}) => {
-    saveToken(token);
+    saveToken(token, userInfo);
     setUser(userInfo);
   };
 
   const logout = () => {
-    removeToken();
+    clearToken();
     setUser(null);
   };
 

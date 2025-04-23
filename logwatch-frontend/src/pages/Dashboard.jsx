@@ -2,6 +2,9 @@ import React, { useMemo, useState } from "react";
 import AppLayout from "@/components/AppLayout";
 import SearchBar from "@/components/SearchBar";
 import ApplicationCard from "@/components/ApplicationCard";
+import { PlusIcon } from "@/components/ui/icons";
+import Button from "@/components/ui/Button";
+import { useNavigate } from "react-router-dom";
 
 const MOCK_APPS = [
   {
@@ -22,15 +25,27 @@ const MOCK_APPS = [
 
 const DashboardPage = () => {
   const [query, setQuery] = useState("");
+  const navigate = useNavigate();
 
   const filteredApps = useMemo(() => {
     const q = query.trim().toLowerCase();
     return MOCK_APPS.filter((app) => app.name.toLowerCase().includes(q));
   }, [query]);
 
+  const handleCreate = () => navigate("/applications/new");
+
   return (
     <AppLayout>
-      <SearchBar value={query} onChange={setQuery} />
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-6">
+        <SearchBar value={query} onChange={setQuery} />
+        <Button
+          onClick={handleCreate}
+          className="w-full md:w-auto flex items-center gap-2 justify-center"
+        >
+          <PlusIcon /> New App
+        </Button>
+      </div>
+
       {filteredApps.length === 0 ? (
         <p className="text-gray-500">No Applications found.</p>
       ) : (
