@@ -17,6 +17,8 @@ export class Application {
 
   @Prop({ type: Types.ObjectId, ref: 'User', required: true })
   ownerId: Types.ObjectId; // reference to the user who created the app
+  @Prop({ default: 'Active' })
+  status: 'Active' | 'Paused';
 }
 
 export const ApplicationSchema = SchemaFactory.createForClass(Application);

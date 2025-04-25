@@ -10,6 +10,7 @@ import { Model, Types } from 'mongoose';
 import { randomBytes } from 'crypto';
 import { Application, ApplicationDocument } from './application.schema';
 import { CreateApplicationDto } from './dto/create-application.dto';
+import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class ApplicationService {
@@ -27,7 +28,7 @@ export class ApplicationService {
     if (exists) throw new ConflictException('Application name already in use');
 
     const app = new this.appModel({
-      ...dto,
+      dto,
       apiKey: this.generateApiKey(),
       ownerId,
     });
@@ -47,5 +48,36 @@ export class ApplicationService {
 
   async findByApiKey(apiKey: string) {
     return this.appModel.findOne({ apiKey }).lean();
+  }
+  async update(userId: string, appId: string, dto: Partial<Application>) {
+    const app = await this.appModel.findById(appId);
+
+    if (!app) throw new NotFoundException('Application not found');
+
+    // Verify ownership
+    if (app.ownerId.toString() !== userId.toString()) {
+      throw new ForbiddenException(
+        'You are not allowed to modify this application',
+      );
+    }
+
+    // Apply updates
+    if (dto.name !== undefined) app.name = dto.name;
+    if (dto.status !== undefined) app.status = dto.status;
+
+    await app.save();
+    return app;
+  }
+
+  async regenerateApiKey(userId: string, appId: string) {
+    const app = await this.appModel.findOne({
+      _id: appId,
+      userId: new Types.ObjectId(userId),
+    });
+    if (!app) throw new NotFoundException('Application not found');
+
+    app.apiKey = uuidv4().replace(/-/g, '').slice(0, 24);
+    await app.save();
+    return { apiKey: app.apiKey };
   }
 }

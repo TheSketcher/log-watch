@@ -4,14 +4,15 @@ import {
   Get,
   Param,
   Post,
+  Patch,
   Body,
   UseGuards,
   Request,
 } from '@nestjs/common';
 import { CreateApplicationDto } from './dto/create-application.dto';
+import { UpdateApplicationDto } from './dto/update-application.dto';
 import { ApplicationService } from './application.service';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard'; // adjust to your auth guard path
-
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 @Controller('applications')
 @UseGuards(JwtAuthGuard)
 export class ApplicationController {
@@ -30,5 +31,21 @@ export class ApplicationController {
   @Get(':id')
   async findOne(@Request() req, @Param('id') id: string) {
     return this.appService.findById(req.user._id, id);
+  }
+  @Patch(':id')
+  async updateApp(
+    @Request() req,
+    @Param('id') id: string,
+    @Body() dto: UpdateApplicationDto,
+  ) {
+    console.log(`PATCH /applications/${id}`, dto);
+
+    return this.appService.update(req.user._id, id, dto);
+  }
+
+  /** Regenerate API key */
+  @Post(':id/regenerate-key')
+  async regenerateKey(@Request() req, @Param('id') id: string) {
+    return this.appService.regenerateApiKey(req.user._id, id);
   }
 }
