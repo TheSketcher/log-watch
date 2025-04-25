@@ -10,7 +10,7 @@ import { LogModule } from './logs/log.module';
 import { JwtModule } from '@nestjs/jwt';
 @Module({
   imports: [
-    ConfigModule.forRoot(),
+    ConfigModule.forRoot({ isGlobal: true }),
     MongooseModule.forRoot(
       process.env.MONGO_URI || 'mongodb://localhost:27017/default-db',
     ),

@@ -1,40 +1,40 @@
-// ===================== src/pages/CreateApplication.jsx ============
-// Page for creating a new application (name + comment). The component
-// auto‑generates `createdAt` and a 24‑character API‑key on submit.
-
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import AppLayout from "@/components/AppLayout";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import { Card, CardContent } from "@/components/ui/Card";
+import api from "@/api/axios";
 import { v4 as uuid } from "uuid";
 
 const CreateApplication = () => {
   const [name, setName] = useState("");
   const [comment, setComment] = useState("");
   const [apiKey, setApiKey] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  // Create a 24‑char key (uuid v4 without dashes) – replace with backend‑issued one if needed.
-  const generateApiKey = () => uuid().replace(/-/g, "").slice(0, 24);
+  // Generate API Key on mount
+  useEffect(() => {
+    const key = uuid().replace(/-/g, "").slice(0, 24);
+    setApiKey(key);
+  }, []);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setError("");
+    setLoading(true);
 
-    const newApp = {
-      id: Date.now().toString(), // temporary placeholder
-      name,
-      comment,
-      createdAt: new Date().toISOString(),
-      apiKey: generateApiKey(),
-    };
-
-    console.log("Creating app", newApp);
-    // TODO: POST newApp to backend → /applications
-
-    // redirect to dashboard once done
-    navigate("/dashboard", { replace: true });
+    try {
+      await api.post("/applications", { name, comment, apiKey });
+      navigate("/dashboard", { replace: true }); // auto-close
+    } catch (err) {
+      console.error("Failed to create application", err);
+      setError("Failed to create application.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -45,8 +45,11 @@ const CreateApplication = () => {
             Create New Application
           </h2>
 
+          {error && (
+            <p className="text-red-600 text-sm mb-4 text-center">{error}</p>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Name field */}
             <div>
               <label className="block mb-1 text-sm">Name</label>
               <Input
@@ -57,7 +60,6 @@ const CreateApplication = () => {
               />
             </div>
 
-            {/* Comment field */}
             <div>
               <label className="block mb-1 text-sm">Comment (optional)</label>
               <textarea
@@ -69,23 +71,25 @@ const CreateApplication = () => {
               />
             </div>
 
-            {/* Display API key after submit */}
-            {apiKey && (
-              <div>
-                <label className="block mb-1 text-sm">API Key</label>
-                <Input value={apiKey} readOnly className="bg-gray-100" />
-              </div>
-            )}
+            <div>
+              <label className="block mb-1 text-sm">
+                API Key (auto‑generated)
+              </label>
+              <Input value={apiKey} readOnly className="bg-gray-100" />
+            </div>
 
             <div className="flex gap-3 justify-end pt-2">
               <Button
                 variant="ghost"
                 type="button"
                 onClick={() => navigate(-1)}
+                disabled={loading}
               >
                 Cancel
               </Button>
-              <Button type="submit">Create</Button>
+              <Button type="submit" disabled={loading}>
+                {loading ? "Creating…" : "Create"}
+              </Button>
             </div>
           </form>
         </CardContent>

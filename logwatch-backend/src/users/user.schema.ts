@@ -16,13 +16,15 @@ export class User {
   @Prop({ required: true })
   password: string;
 
-  /** Helper – validate plain password against hashed one */
+  /** Compare plain password against the hashed one */
   async comparePassword(plain: string): Promise<boolean> {
     return bcrypt.compare(plain, this.password);
   }
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
+
+UserSchema.methods.comparePassword = User.prototype.comparePassword;
 
 /* Hash password automatically before save */
 UserSchema.pre<UserDocument>('save', async function (next) {
