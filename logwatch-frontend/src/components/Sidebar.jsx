@@ -1,6 +1,6 @@
 import React from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import Button from "@/components/ui/Button";
+import { Button } from "@/components/ui/Button";
 import { HomeIcon, LogoutIcon } from "@/components/ui/icons";
 import { useAuth } from "@/contexts/AuthContext";
 

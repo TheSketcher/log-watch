@@ -4,7 +4,8 @@ import Login from "@/pages/Login";
 import DashboardPage from "@/pages/Dashboard";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import CreateApplication from "@/pages/CreateApplication";
-
+import ApplicationDashboard from "@/pages/ApplicationDashboard";
+import { Toaster } from "sonner";
 // ----- Guard -----
 const ProtectedRoute = ({ children }) => {
   const { user } = useAuth();
@@ -15,9 +16,9 @@ export default function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
+        <Toaster position="top-right" richColors /> {/* 💡 Renders toasts */}
         <Routes>
           <Route path="/login" element={<Login />} />
-
           <Route
             path="/dashboard"
             element={
@@ -31,6 +32,15 @@ export default function App() {
             element={
               <ProtectedRoute>
                 <CreateApplication />
+              </ProtectedRoute>
+            }
+          />
+          {/* Application Dashboard Route */}
+          <Route
+            path="/applications/:id/*"
+            element={
+              <ProtectedRoute>
+                <ApplicationDashboard />
               </ProtectedRoute>
             }
           />

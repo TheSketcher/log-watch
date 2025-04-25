@@ -3,7 +3,7 @@ import AppLayout from "@/components/AppLayout";
 import SearchBar from "@/components/SearchBar";
 import ApplicationCard from "@/components/ApplicationCard";
 import { PlusIcon } from "@/components/ui/icons";
-import Button from "@/components/ui/Button";
+import { Button } from "@/components/ui/Button";
 import { useNavigate } from "react-router-dom";
 import api from "@/api/axios";
 

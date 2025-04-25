@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import api from "@/api/axios";
-import Button from "@/components/ui/Button";
+import { Button } from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 
 export default function Login({ onLogin }) {
@@ -11,10 +11,10 @@ export default function Login({ onLogin }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const navigate = useNavigate();
-  const apiUrl = import.meta.env.VITE_API_URL;
-  const { login: ctxLogin } = useAuth();
   const [loading, setLoading] = useState(false);
+
+  const navigate = useNavigate();
+  const { login: ctxLogin } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -24,7 +24,6 @@ export default function Login({ onLogin }) {
     try {
       if (tab === "login") {
         const { data } = await api.post("/auth/login", { username, password });
-        // backend returns { access_token, user }
         ctxLogin(data.access_token, data.user);
       } else {
         const { data } = await api.post("/users", {
@@ -42,24 +41,22 @@ export default function Login({ onLogin }) {
       setLoading(false);
     }
   };
+
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100 p-4">
       <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-sm">
-        {/* Tab buttons */}
-        <div className="flex mb-6">
+        {/* Tab buttons with ShadCN Button */}
+        <div className="flex mb-6 gap-1">
           {["login", "register"].map((t) => (
-            <button
+            <Button
               key={t}
               type="button"
+              variant={tab === t ? "default" : "outline"}
+              className="flex-1"
               onClick={() => setTab(t)}
-              className={`flex-1 py-2 first:rounded-l-lg last:rounded-r-lg ${
-                tab === t
-                  ? "bg-blue-500 text-white"
-                  : "bg-gray-200 text-gray-700"
-              }`}
             >
               {t === "login" ? "Login" : "Register"}
-            </button>
+            </Button>
           ))}
         </div>
 
