@@ -73,6 +73,8 @@ export class ApplicationService {
 
     if (dto.name !== undefined) app.name = dto.name;
     if (dto.status !== undefined) app.status = dto.status;
+    if (dto.logRetentionDays !== undefined)
+      app.logRetentionDays = dto.logRetentionDays;
 
     await app.save();
     return app;

@@ -21,6 +21,7 @@ const ApplicationSettings = ({ app }) => {
   const [isSaving, setIsSaving] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showRegenerateDialog, setShowRegenerateDialog] = useState(false);
+  const [retentionDays, setRetentionDays] = useState(app.retentionDays || 30);
 
   const handleRename = async () => {
     setIsSaving(true);
@@ -78,6 +79,18 @@ const ApplicationSettings = ({ app }) => {
       setShowRegenerateDialog(false);
     }
   };
+  const handleRetentionChange = async (days) => {
+    try {
+      await api.patch(`/applications/${app._id}`, { retentionDays: days });
+      setRetentionDays(days);
+      toast.success(
+        `Log retention set to ${days === 0 ? "forever" : `${days} days`}`
+      );
+    } catch (err) {
+      console.error("Failed to update retention", err);
+      toast.error("Failed to update log retention");
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -104,6 +117,40 @@ const ApplicationSettings = ({ app }) => {
           <Button variant="outline" onClick={handleToggleStatus}>
             {status === "Active" ? "Pause Logging" : "Resume Logging"}
           </Button>
+        </CardContent>
+      </Card>
+      {/* Log Retention Settings */}
+      <Card>
+        <CardContent className="space-y-4">
+          <h2 className="text-xl font-semibold mb-2">Log Retention</h2>
+          <p className="text-sm text-gray-500">
+            Choose how long logs should be retained. If set to 0, logs will be
+            kept forever.
+          </p>
+
+          <div className="flex gap-2">
+            {[30, 60, 90].map((days) => (
+              <Button
+                key={days}
+                variant="outline"
+                onClick={() => handleRetentionChange(days)}
+              >
+                {days} Days
+              </Button>
+            ))}
+          </div>
+
+          <div className="flex gap-2 items-center">
+            <Input
+              type="number"
+              min={0}
+              value={retentionDays}
+              onChange={(e) => setRetentionDays(Number(e.target.value))}
+            />
+            <Button onClick={() => handleRetentionChange(retentionDays)}>
+              Save Retention
+            </Button>
+          </div>
         </CardContent>
       </Card>
 

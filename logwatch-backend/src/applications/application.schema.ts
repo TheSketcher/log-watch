@@ -17,8 +17,12 @@ export class Application {
 
   @Prop({ type: Types.ObjectId, ref: 'User', required: true })
   ownerId: Types.ObjectId; // reference to the user who created the app
+
   @Prop({ default: 'Active' })
   status: 'Active' | 'Paused';
+
+  @Prop({ type: Number, default: 30 })
+  logRetentionDays: number; // number of days to keep logs
 }
 
 export const ApplicationSchema = SchemaFactory.createForClass(Application);

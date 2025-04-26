@@ -8,9 +8,11 @@ import { AuthModule } from './auth/auth.module';
 import { ApplicationModule } from './applications/application.module';
 import { LogModule } from './logs/log.module';
 import { JwtModule } from '@nestjs/jwt';
+import { ScheduleModule } from '@nestjs/schedule';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
+    ScheduleModule.forRoot(),
     MongooseModule.forRoot(
       process.env.MONGO_URI || 'mongodb://localhost:27017/default-db',
     ),
