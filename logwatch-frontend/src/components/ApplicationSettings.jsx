@@ -10,13 +10,17 @@ import {
   DialogFooter,
 } from "@/components/ui/Dialog";
 import { toast } from "sonner";
+import { Eye, EyeOff, Copy, RefreshCcw } from "lucide-react";
 import api from "@/api/axios";
 
 const ApplicationSettings = ({ app }) => {
   const [name, setName] = useState(app.name);
   const [status, setStatus] = useState(app.status || "Active");
+  const [apiKey, setApiKey] = useState(app.apiKey);
+  const [showApiKey, setShowApiKey] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showRegenerateDialog, setShowRegenerateDialog] = useState(false);
 
   const handleRename = async () => {
     setIsSaving(true);
@@ -54,6 +58,27 @@ const ApplicationSettings = ({ app }) => {
     }
   };
 
+  const handleCopyApiKey = async () => {
+    await navigator.clipboard.writeText(apiKey);
+    toast.success("API Key copied to clipboard");
+  };
+
+  const handleRegenerateApiKey = async () => {
+    try {
+      const { data } = await api.post(
+        `/applications/${app._id}/regenerate-key`
+      );
+      setApiKey(data.apiKey);
+      setShowApiKey(true);
+      toast.success("API Key regenerated successfully");
+    } catch (err) {
+      console.error("Failed to regenerate API key", err);
+      toast.error("Failed to regenerate API key");
+    } finally {
+      setShowRegenerateDialog(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Rename App */}
@@ -79,6 +104,64 @@ const ApplicationSettings = ({ app }) => {
           <Button variant="outline" onClick={handleToggleStatus}>
             {status === "Active" ? "Pause Logging" : "Resume Logging"}
           </Button>
+        </CardContent>
+      </Card>
+
+      {/* API Key Section */}
+      <Card>
+        <CardContent className="space-y-4">
+          <h2 className="text-xl font-semibold mb-2">API Key</h2>
+          <div className="flex items-center gap-2">
+            <span className="font-mono text-sm break-all">
+              {showApiKey ? apiKey : "••••••••••••••••••••••"}
+            </span>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setShowApiKey(!showApiKey)}
+            >
+              {showApiKey ? (
+                <EyeOff className="w-4 h-4" />
+              ) : (
+                <Eye className="w-4 h-4" />
+              )}
+            </Button>
+            <Button variant="ghost" size="icon" onClick={handleCopyApiKey}>
+              <Copy className="w-4 h-4" />
+            </Button>
+          </div>
+          <Dialog
+            open={showRegenerateDialog}
+            onOpenChange={setShowRegenerateDialog}
+          >
+            <DialogTrigger asChild>
+              <Button variant="destructive" className="mt-2">
+                <RefreshCcw className="w-4 h-4 mr-2" /> Regenerate API Key
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <h2 className="text-lg font-semibold text-red-600">
+                  Confirm API Key Regeneration
+                </h2>
+                <p className="text-sm text-gray-500">
+                  Are you sure you want to regenerate the API key? The old key
+                  will stop working immediately.
+                </p>
+              </DialogHeader>
+              <DialogFooter>
+                <Button
+                  variant="ghost"
+                  onClick={() => setShowRegenerateDialog(false)}
+                >
+                  Cancel
+                </Button>
+                <Button variant="destructive" onClick={handleRegenerateApiKey}>
+                  Regenerate
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </CardContent>
       </Card>
 

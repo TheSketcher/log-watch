@@ -19,7 +19,6 @@ export class AuthController {
     const valid = await bcrypt.compare(body.password, userN.password);
     if (!valid) throw new UnauthorizedException('Invalid credentials');
 
-    // Dummy-Token (später JWT)
     const user = await this.authService.validateUser(
       body.username,
       body.password,

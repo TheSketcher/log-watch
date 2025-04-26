@@ -1,4 +1,3 @@
-// ====================== src/applications/application.service.ts
 import {
   Injectable,
   ConflictException,
@@ -23,45 +22,55 @@ export class ApplicationService {
     return randomBytes(12).toString('hex'); // 24 chars
   }
 
-  async create(ownerId: Types.ObjectId, dto: CreateApplicationDto) {
-    const exists = await this.appModel.exists({ name: dto.name, ownerId });
+  private toObjectId(id: string): Types.ObjectId {
+    return new Types.ObjectId(id);
+  }
+
+  async create(ownerId: string, dto: CreateApplicationDto) {
+    const ownerObjId = this.toObjectId(ownerId);
+    const exists = await this.appModel.exists({
+      name: dto.name,
+      ownerId: ownerObjId,
+    });
     if (exists) throw new ConflictException('Application name already in use');
 
     const app = new this.appModel({
-      dto,
+      ...dto,
       apiKey: this.generateApiKey(),
-      ownerId,
+      ownerId: ownerObjId,
     });
     return app.save();
   }
 
-  async findAll(ownerId: Types.ObjectId) {
-    return this.appModel.find({ ownerId }).lean();
+  async findAll(ownerId: string) {
+    const ownerObjId = this.toObjectId(ownerId);
+    return this.appModel.find({ ownerId: ownerObjId }).lean();
   }
 
-  async findById(ownerId: Types.ObjectId, id: string) {
+  async findById(ownerId: string, id: string) {
+    const ownerObjId = this.toObjectId(ownerId);
     const app = await this.appModel.findById(id).lean();
     if (!app) throw new NotFoundException();
-    if (!app.ownerId.equals(ownerId)) throw new ForbiddenException();
+    if (!app.ownerId.equals(ownerObjId)) throw new ForbiddenException();
     return app;
   }
 
   async findByApiKey(apiKey: string) {
     return this.appModel.findOne({ apiKey }).lean();
   }
+
   async update(userId: string, appId: string, dto: Partial<Application>) {
+    const userObjId = this.toObjectId(userId);
     const app = await this.appModel.findById(appId);
 
     if (!app) throw new NotFoundException('Application not found');
 
-    // Verify ownership
-    if (app.ownerId.toString() !== userId.toString()) {
+    if (!app.ownerId.equals(userObjId)) {
       throw new ForbiddenException(
         'You are not allowed to modify this application',
       );
     }
 
-    // Apply updates
     if (dto.name !== undefined) app.name = dto.name;
     if (dto.status !== undefined) app.status = dto.status;
 
@@ -70,14 +79,34 @@ export class ApplicationService {
   }
 
   async regenerateApiKey(userId: string, appId: string) {
-    const app = await this.appModel.findOne({
-      _id: appId,
-      userId: new Types.ObjectId(userId),
-    });
+    const userObjId = this.toObjectId(userId);
+    const app = await this.appModel.findById(appId);
     if (!app) throw new NotFoundException('Application not found');
+
+    if (!app.ownerId.equals(userObjId)) {
+      throw new ForbiddenException(
+        'You are not allowed to regenerate this key',
+      );
+    }
 
     app.apiKey = uuidv4().replace(/-/g, '').slice(0, 24);
     await app.save();
     return { apiKey: app.apiKey };
+  }
+
+  async delete(userId: string, appId: string) {
+    const userObjId = this.toObjectId(userId);
+    const app = await this.appModel.findById(appId);
+
+    if (!app) throw new NotFoundException('Application not found');
+
+    if (!app.ownerId.equals(userObjId)) {
+      throw new ForbiddenException(
+        'You are not allowed to delete this application',
+      );
+    }
+
+    await app.deleteOne();
+    return { message: 'Application deleted successfully' };
   }
 }

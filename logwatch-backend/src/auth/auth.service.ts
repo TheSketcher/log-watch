@@ -15,7 +15,6 @@ export class AuthService {
   async validateUser(username: string, pass: string) {
     const user = await this.userModel.findOne({ username });
     if (user && (await user.comparePassword(pass))) {
-      // never return the password hash
       const { password, ...result } = user.toObject();
       return result;
     }

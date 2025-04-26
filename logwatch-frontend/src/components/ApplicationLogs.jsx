@@ -5,27 +5,34 @@ import { Button } from "@/components/ui/Button";
 import { ErrorIcon, WarningIcon, InfoIcon } from "@/components/ui/icons";
 import api from "@/api/axios";
 
+const timeRanges = [
+  { label: "24h", hours: 24 },
+  { label: "7d", hours: 168 },
+  { label: "30d", hours: 720 },
+];
+
 const ApplicationLogs = ({ app }) => {
   const [logs, setLogs] = useState([]);
   const [filteredLogs, setFilteredLogs] = useState([]);
   const [query, setQuery] = useState("");
   const [levelFilter, setLevelFilter] = useState("all");
+  const [timeRange, setTimeRange] = useState(timeRanges[0]);
 
   useEffect(() => {
     const fetchLogs = async () => {
       try {
         const { data } = await api.get("/logs", {
-          params: { applicationId: app._id },
+          params: { applicationId: app._id, hours: timeRange.hours },
         });
         setLogs(data);
-        setFilteredLogs(data);
+        setFilteredLogs(data); // Initial filter
       } catch (err) {
         console.error("Failed to fetch logs", err);
       }
     };
 
     fetchLogs();
-  }, [app._id]);
+  }, [app._id, timeRange]);
 
   // Filter logs by query and level
   useEffect(() => {
@@ -45,6 +52,19 @@ const ApplicationLogs = ({ app }) => {
     setFilteredLogs(result);
   }, [query, levelFilter, logs]);
 
+  const getIcon = (level) => {
+    switch (level) {
+      case "error":
+        return <ErrorIcon className="text-red-500" />;
+      case "warning":
+        return <WarningIcon className="text-yellow-500" />;
+      case "info":
+        return <InfoIcon className="text-blue-500" />;
+      default:
+        return null;
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Filters */}
@@ -56,6 +76,19 @@ const ApplicationLogs = ({ app }) => {
             onChange={(e) => setQuery(e.target.value)}
             className="md:w-1/2"
           />
+          <div className="flex gap-2">
+            {timeRanges.map((range) => (
+              <Button
+                key={range.label}
+                variant={
+                  timeRange.label === range.label ? "default" : "outline"
+                }
+                onClick={() => setTimeRange(range)}
+              >
+                {range.label}
+              </Button>
+            ))}
+          </div>
           <div className="flex gap-2">
             <Button
               variant={levelFilter === "all" ? "default" : "outline"}
@@ -97,8 +130,11 @@ const ApplicationLogs = ({ app }) => {
                   key={log._id}
                   className="p-3 border rounded-md bg-gray-50 space-y-1 text-sm"
                 >
-                  <div className="flex justify-between text-xs text-gray-500">
-                    <span>{log.level.toUpperCase()}</span>
+                  <div className="flex justify-between text-xs text-gray-500 items-center">
+                    <span className="flex items-center gap-1">
+                      {getIcon(log.level)}
+                      {log.level.toUpperCase()}
+                    </span>
                     <span>{new Date(log.timestamp).toLocaleString()}</span>
                   </div>
                   <p>{log.message}</p>

@@ -2,22 +2,22 @@ import React, { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { ErrorIcon, WarningIcon, InfoIcon } from "@/components/ui/icons";
+import { Eye, EyeOff } from "lucide-react";
 import api from "@/api/axios";
 import { Button } from "@/components/ui/Button";
 
 const ApplicationOverview = ({ app }) => {
   const [stats, setStats] = useState({ errors: 0, warnings: 0, infos: 0 });
   const [recentLogs, setRecentLogs] = useState([]);
+  const [showApiKey, setShowApiKey] = useState(false);
 
   useEffect(() => {
-    // Fetch logs and stats for the overview
     const fetchOverviewData = async () => {
       try {
         const { data } = await api.get("/logs", {
           params: { applicationId: app._id },
         });
 
-        // Compute stats
         const statsTemp = { errors: 0, warnings: 0, infos: 0 };
         data.forEach((log) => {
           if (log.level === "error") statsTemp.errors++;
@@ -26,7 +26,7 @@ const ApplicationOverview = ({ app }) => {
         });
 
         setStats(statsTemp);
-        setRecentLogs(data.slice(0, 5)); // Only latest 5
+        setRecentLogs(data.slice(0, 5));
       } catch (err) {
         console.error("Failed to fetch overview data", err);
       }
@@ -70,8 +70,20 @@ const ApplicationOverview = ({ app }) => {
             <span className="font-medium">Created At:</span>{" "}
             {new Date(app.createdAt).toLocaleDateString()}
           </p>
-          <p className="break-all text-sm text-gray-500">
-            <span className="font-medium">API Key:</span> {app.apiKey}
+          <p className="break-all text-sm text-gray-500 flex items-center gap-2">
+            <span className="font-medium">API Key:</span>
+            {showApiKey ? app.apiKey : "••••••••••••••••••••••"}
+            <button
+              type="button"
+              onClick={() => setShowApiKey(!showApiKey)}
+              className="text-gray-400 hover:text-gray-700"
+            >
+              {showApiKey ? (
+                <EyeOff className="w-4 h-4" />
+              ) : (
+                <Eye className="w-4 h-4" />
+              )}
+            </button>
           </p>
         </CardContent>
       </Card>

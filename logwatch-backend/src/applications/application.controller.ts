@@ -8,6 +8,8 @@ import {
   Body,
   UseGuards,
   Request,
+  NotFoundException,
+  Delete,
 } from '@nestjs/common';
 import { CreateApplicationDto } from './dto/create-application.dto';
 import { UpdateApplicationDto } from './dto/update-application.dto';
@@ -47,5 +49,17 @@ export class ApplicationController {
   @Post(':id/regenerate-key')
   async regenerateKey(@Request() req, @Param('id') id: string) {
     return this.appService.regenerateApiKey(req.user._id, id);
+  }
+  /** Delete application */
+  @Delete(':id')
+  async delete(@Request() req, @Param('id') id: string) {
+    console.log(`DELETE /applications/${id}`);
+    const app = await this.appService.findById(req.user._id, id);
+    if (!app) {
+      throw new NotFoundException(
+        'Application not found or does not belong to user',
+      );
+    }
+    return this.appService.delete(req.user._id, id);
   }
 }
