@@ -10,7 +10,7 @@ class LogWatchClient {
     this.api = axios.create({
       baseURL: endpoint,
       headers: {
-        Authorization: `Bearer ${apiKey}`,
+        "x-api-key": apiKey,
         "Content-Type": "application/json",
       },
       timeout: 5000, // 5 second timeout
